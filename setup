@@ -10,17 +10,6 @@
 # Author: Dave Nicolette
 #======================================================================================
 export INSTALL_DIR="$HOME/provision-cobol-dev-osx"
-export COMMON_DIR="provision-osx-common"
-
-# git clone "https://github.com/neopragma/$COMMON_DIR"
-
-echo
-echo '============================================================='
-echo 'Installing prerequisite packages to support GNU COBOL...'
-
-# "./$COMMON_DIR/install_build_support"
-# "./$COMMON_DIR/install_aptitude"
-# sudo apt-get -y -f install libgmp3-dev libtool libdb-dev ncurses-dev libncurses-dev
 
 echo
 echo '============================================================='
