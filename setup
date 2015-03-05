@@ -1,0 +1,137 @@
+#!/bin/bash
+#======================================================================================
+# Configure an instance of Apple OS X to support Cobol development.
+#
+# Arguments:
+# (None)		
+#
+# Version: 0.1.0
+# Date: 05 Mar 2015
+# Author: Dave Nicolette
+#======================================================================================
+export INSTALL_DIR="$HOME/provision-cobol-dev-osx"
+export COMMON_DIR="provision-osx-common"
+
+# git clone "https://github.com/neopragma/$COMMON_DIR"
+
+echo
+echo '============================================================='
+echo 'Installing prerequisite packages to support GNU COBOL...'
+
+# "./$COMMON_DIR/install_build_support"
+# "./$COMMON_DIR/install_aptitude"
+# sudo apt-get -y -f install libgmp3-dev libtool libdb-dev ncurses-dev libncurses-dev
+
+echo
+echo '============================================================='
+echo 'Installing Berkeley DB...'
+
+mkdir -p "$HOME/.berkeley_db"
+pushd "$HOME/.berkeley_db"
+curl -o berkeley-db.tar.gz http://download.oracle.com/berkeley-db/db-6.1.19.tar.gz
+tar xvfz berkeley-db.tar.gz
+cd db-6.1.19
+cd build_unix && ../dist/configure \
+   --prefix=/usr      \
+   --enable-compat185 \
+   --enable-dbm       \
+   --disable-static   \
+   --enable-cxx &&
+make
+sudo make docdir=/usr/share/doc/db-6.1.19 install
+popd
+
+echo
+echo '============================================================='
+echo 'Installing GNU COBOL...'
+
+mkdir -p "$HOME/.cobol"
+pushd "$HOME/.cobol"
+
+curl -o gmp.tar.xz https://ftp.gnu.org/gnu/gmp/gmp-6.0.0a.tar.xz
+tar xvfz gmp.tar.xz || {
+    printf '%s\n' 'tar failed uncompressing gmp.tar.xz' >&2
+    printf '%s\n' 'Aborting.' >&2
+    exit 1  
+}
+pushd gmp-6.0.0
+./configure --prefix=/usr/local --enable-cxx
+make
+make check
+sudo make install
+popd
+
+curl -Lo gnu-cobol.tar.gz http://sourceforge.net/projects/open-cobol/files/latest/download/gnu-cobol/1.1/gnu-cobol-1.1.tar.gz 
+tar xvfz gnu-cobol.tar.gz || {
+    printf '%s\n' 'tar failed uncompressing gnu-cobol.tar.gz' >&2
+    printf '%s\n' 'Aborting.' >&2
+    exit 1
+}
+pushd gnu-cobol-1.1
+
+echo
+echo 'Will now run:'
+echo '    ./configure'
+echo '    make'
+echo '    make check'
+echo '    sudo make install'
+echo
+echo 'Expect to see a few build errors in the make step.'
+echo 'Depend on the results of make check to determine whether setup was successful.'
+echo
+
+./configure --with-db
+make
+make check > make-check-output
+if [ $(grep 'error' make-check-output) ]; then
+  echo 'GNU COBOL make check had failing tests or other errors.'
+  echo 'Please investigate and correct errors.'
+  echo "make check output was written to: $PWD/make-check-output."
+  exit 1
+fi
+sudo make install
+# workaround for known problem - make puts libcob.so.1 in the wrong directory
+# sudo ln -s /usr/local/lib/libcob.so.1 /usr/lib/libcob.so.1
+popd
+popd
+
+echo
+echo '============================================================='
+echo "Copying documentation to desktop..."
+
+cp -Rf Documentation "$HOME/Desktop"
+cp help.html "$HOME/Desktop"
+
+pushd "$HOME/Desktop/Documentation"
+curl -o 'OpenCOBOL Programmers Guide.pdf' 'http://opencobol.add1tocobol.com/OpenCOBOL%20Programmers%20Guide.pdf'
+popd
+
+echo
+echo '============================================================='
+echo 'Installing Sublime Text 3...'
+
+pushd ~/Desktop
+curl -O http://c758482.r82.cf2.rackcdn.com/Sublime%20Text%20Build%203065.dmg || {
+  printf '%s\n' 'Unable to download Sublime\ Text\ Build\ 3065.dmg' >&2
+  printf '%s\n' 'Aborting.' >&2
+}
+hdiutil attach Sublime%20Text%20Build%203065.dmg || {
+  printf '%s\n' 'Unable to attach Sublime\ Text\ Build\ 3065.dmg' >&2
+  printf '%s\n' 'Aborting.' >&2
+}
+cd /Volumes/Sublime\ Text/
+sudo cp -R Sublime\ Text.app /Applications
+hdiutil detach /Volumes/Sublime\ Text
+popd
+
+echo
+echo '============================================================='
+echo 'Verifying the setup...'
+
+VER=$(cobc --version | grep "GNU Cobol")
+if [ $? -eq 0 ]
+then
+    echo 'OK'
+else
+    echo 'Not OK'
+fi        
