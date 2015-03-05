@@ -21,7 +21,3 @@ Run the setup script.
 cd ~/provision-cobol-dev-ubuntu
 ./setup
 ```
-
-### Step 7 - Verify the setup
-
-The last thing the setup script does is to run a script named verify. Check the output from verify and see if any of the installation steps failed. If so, investigate and resolve the problems. If you discover a problem with the setup script, fix it and make a pull request.
