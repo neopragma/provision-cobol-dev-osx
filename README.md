@@ -2,6 +2,9 @@
 
 Provision an instance of OS X with software to support software development using GNU COBOL. 
 
+DON'T USE THIS
+The build of the cobol compiler is not working. Will not be fixed immediately.
+
 ## Steps
 
 The instructions assume you have a working instance of Apple OS X.
